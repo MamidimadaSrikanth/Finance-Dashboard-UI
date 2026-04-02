@@ -14,12 +14,11 @@ Understand spending patterns
 Built without backend, focusing on frontend skills.
 
 2) Technology Used:-
-| Technology  | Purpose               |
-| HTML        | Structure             |
-| CSS         | Styling & Layout      |
-| JavaScript  | Logic                 |
-| React (CDN) | UI & State Management |
-| Chart.js    | Data Visualization    |
+* HTML used for the Purpose of Structure
+* CSS used for the Purpose of Styling & Layout
+* JavaScript used for the Purpose of Logic
+* React (CDN) used for the Purpose of UI & State Management
+* Chart.js used for the Purpose of Data Visualization 
 
 3) Frontend Architecture:-
 Uses Single Page Application (SPA) concept
@@ -88,9 +87,8 @@ Users can:
 Additionally, Admin users can edit or delete transactions, while Viewer users can only view the data.
 
 11) ROLE-BASED UI (RBAC SIMULATION):-
-| Role   | Access      |
-| Viewer | View only   |
-| Admin  | Edit/Delete |
+* Viewer = View only   
+* Admin = Edit/Delete 
 I implemented a simple role-based UI system.
 The Viewer role has read-only access, while the Admin role can perform actions like editing and deleting transactions.
 This is simulated entirely on the frontend using conditional logic.

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Finance Dashboard</title>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI';}
+
+/* LIGHT MODE (DEFAULT) */
+body.light{
+  background:#f3f4f6;
+  color:#111;
+}
+
+/* DARK MODE */
+body.dark{
+  background:#0f172a;
+  color:#fff;
+}
+
+.container{display:flex;height:100vh;}
+
+.sidebar{
+  width:70px;
+  background:#e5e7eb;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px;
+  gap:20px;
+}
+
+/* DARK SIDEBAR */
+body.dark .sidebar{
+  background:#1e293b;
+}
+
+.sidebar div{cursor:pointer;font-size:22px;transition:0.2s;}
+.sidebar div:hover{transform:scale(1.2);}
+
+.main{flex:1;padding:20px;}
+
+.topbar{display:flex;justify-content:space-between;margin-bottom:20px;}
+
+input{padding:10px;border-radius:10px;border:none;}
+
+.role-toggle{
+  background:#ddd;
+  border-radius:20px;
+  padding:5px;
+}
+
+body.dark .role-toggle{
+  background:#374151;
+}
+
+.role-toggle button{
+  border:none;
+  padding:6px 15px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+.active{
+  background:#6366f1;
+  color:white;
+}
+
+.cards{display:flex;gap:20px;}
+
+.card{
+  flex:1;
+  background:#e5e7eb;
+  padding:20px;
+  border-radius:15px;
+}
+
+body.dark .card{
+  background:#1e293b;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:20px;
+  margin-top:20px;
+}
+
+.box{
+  background:#e5e7eb;
+  padding:20px;
+  border-radius:15px;
+}
+
+body.dark .box{
+  background:#1e293b;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  margin-top:10px;
+  border-collapse:collapse;
+}
+
+th{
+  text-align:left;
+  padding:12px;
+  font-weight:bold;
+  color:#555;
+}
+
+body.dark th{
+  color:#ccc;
+}
+
+td{
+  padding:12px;
+  border-bottom:1px solid #ccc;
+  vertical-align:middle;
+}
+
+body.dark td{
+  border-color:#444;
+}
+
+/* ACTION BUTTONS */
+.actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+button{
+  border:none;
+  cursor:pointer;
+}
+
+.edit{
+  background:#3b82f6;
+  color:white;
+  padding:6px 14px;
+  border-radius:10px;
+  transition:0.2s;
+}
+
+.delete{
+  background:#ef4444;
+  color:white;
+  padding:6px 14px;
+  border-radius:10px;
+  transition:0.2s;
+}
+
+.edit:hover{background:#2563eb;transform:scale(1.05);}
+.delete:hover{background:#dc2626;transform:scale(1.05);}
+
+.green{color:#16a34a;}
+.red{color:#dc2626;}
+</style>
+</head>
+
+<body class="light">
+<div id="root"></div>
+
+<script type="text/babel">
+
+const { useState, useEffect, useRef } = React;
+
+function App(){
+
+  const [page,setPage] = useState("dashboard");
+  const [role,setRole] = useState("viewer");
+
+  // ✅ DARK MODE STATE
+  const [theme,setTheme] = useState("light");
+
+  const lineRef = useRef(null);
+  const pieRef = useRef(null);
+
+  const [data,setData] = useState([
+    {date:"Jan",amount:5000,type:"income",category:"Salary"},
+    {date:"Feb",amount:200,type:"expense",category:"Food"},
+    {date:"Mar",amount:800,type:"expense",category:"Shopping"},
+    {date:"Apr",amount:1200,type:"expense",category:"Clothes"},
+    {date:"May",amount:300,type:"expense",category:"Books"},
+    {date:"Jun",amount:1500,type:"expense",category:"Travelling"},
+    {date:"Jul",amount:600,type:"expense",category:"Entertainment"},
+    {date:"Aug",amount:400,type:"expense",category:"Health"},
+    {date:"Sep",amount:2000,type:"income",category:"Freelance"}
+  ]);
+
+  // APPLY THEME
+  useEffect(()=>{
+    document.body.className = theme;
+  },[theme]);
+
+  const income = data.filter(d=>d.type==="income").reduce((a,b)=>a+b.amount,0);
+  const expense = data.filter(d=>d.type==="expense").reduce((a,b)=>a+b.amount,0);
+
+  const del = (i)=>{
+    if(role!=="admin") return alert("Admin only");
+    setData(data.filter((_,idx)=>idx!==i));
+  };
+
+  const edit = (i)=>{
+    if(role!=="admin") return alert("Admin only");
+    let val = prompt("Enter amount",data[i].amount);
+    if(val){
+      const newData=[...data];
+      newData[i].amount=+val;
+      setData(newData);
+    }
+  };
+
+  useEffect(()=>{
+    if(lineRef.current) lineRef.current.destroy();
+    if(pieRef.current) pieRef.current.destroy();
+
+    const ctx1=document.getElementById("lineChart");
+    const ctx2=document.getElementById("pieChart");
+
+    if(ctx1){
+      lineRef.current=new Chart(ctx1,{
+        type:"line",
+        data:{
+          labels:data.map(d=>d.date),
+          datasets:[{data:data.map(d=>d.amount)}]
+        }
+      });
+    }
+
+    let cat={};
+    data.forEach(d=>{
+      if(d.type==="expense"){
+        cat[d.category]=(cat[d.category]||0)+d.amount;
+      }
+    });
+
+    if(ctx2){
+      pieRef.current=new Chart(ctx2,{
+        type:"pie",
+        data:{
+          labels:Object.keys(cat),
+          datasets:[{data:Object.values(cat)}]
+        }
+      });
+    }
+
+  },[data,page]);
+
+  return (
+    <div className="container">
+
+      {/* SIDEBAR */}
+      <div className="sidebar">
+        <div onClick={()=>setPage("dashboard")}>🏠</div>
+        <div onClick={()=>setPage("analytics")}>📊</div>
+        <div onClick={()=>setPage("transactions")}>💳</div>
+      </div>
+
+      <div className="main">
+
+        {/* TOPBAR */}
+        <div className="topbar">
+          <input placeholder="Search..." />
+
+          <div className="role-toggle">
+            <button className={role==="viewer"?"active":""} onClick={()=>setRole("viewer")}>Viewer</button>
+            <button className={role==="admin"?"active":""} onClick={()=>setRole("admin")}>Admin</button>
+          </div>
+
+          {/* 🌙 DARK MODE BUTTON */}
+          <button onClick={()=>setTheme(theme==="light"?"dark":"light")}>
+            {theme==="light" ? "🌙" : "☀️"}
+          </button>
+        </div>
+
+        {/* CARDS */}
+        <div className="cards">
+          <div className="card"><h3>Balance</h3><h2>₹{income-expense}</h2></div>
+          <div className="card"><h3>Income</h3><h2 className="green">₹{income}</h2></div>
+          <div className="card"><h3>Expense</h3><h2 className="red">₹{expense}</h2></div>
+        </div>
+
+        {/* DASHBOARD */}
+        {page==="dashboard" && (
+          <div className="grid">
+            <div>
+              <div className="box">
+                <h3>Analytics</h3>
+                <canvas id="lineChart"></canvas>
+              </div>
+
+              <div className="box">
+                <h3>Transactions</h3>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Category</th>
+                      <th>Amount</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {data.map((d,i)=>(
+                      <tr key={i}>
+                        <td>{d.date}</td>
+                        <td>{d.category}</td>
+                        <td className={d.type==="income"?"green":"red"}>₹{d.amount}</td>
+                        <td className="actions">
+                          <button className="edit" onClick={()=>edit(i)}>Edit</button>
+                          <button className="delete" onClick={()=>del(i)}>Delete</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+
+            <div>
+              <div className="box">
+                <h3>Spending</h3>
+                <canvas id="pieChart"></canvas>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
+
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+</body>
+</html>

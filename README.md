@@ -15,7 +15,6 @@ Built without backend, focusing on frontend skills.
 
 2) Technology Used:-
 | Technology  | Purpose               |
-| ----------- | --------------------- |
 | HTML        | Structure             |
 | CSS         | Styling & Layout      |
 | JavaScript  | Logic                 |
@@ -90,7 +89,6 @@ Additionally, Admin users can edit or delete transactions, while Viewer users ca
 
 11) ROLE-BASED UI (RBAC SIMULATION):-
 | Role   | Access      |
-| ------ | ----------- |
 | Viewer | View only   |
 | Admin  | Edit/Delete |
 I implemented a simple role-based UI system.
